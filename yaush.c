@@ -1,7 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include <readline/readline.h>
+#include <errno.h>
 #include <readline/history.h>
 #include "yaush.h"
 
@@ -17,7 +19,6 @@ int com_pwd PARAMS((char *));
 	//{ "pwd", com_pwd, "Print the current workdir"}
 //};
 
-char * commands[]={"pwd","cd"};
 
 char * rl_gets()
 {
@@ -26,7 +27,7 @@ char * rl_gets()
 		free(line_read);
 		line_read = (char *) NULL;
 	}
-	line_read = readline(yaush_prompt);
+	line_read = readline(PROMPT);
 
 	if(line_read && *line_read)
 		add_history(line_read);
@@ -89,20 +90,29 @@ char * stripwhite(char *str)
 void execute_line(char * line)
 {
 	printf("%s\n", line);
+	CommandList cmd_list;
+	cmd_list = parse_line(line);
+
+	if (fork()==0)
+	{	//child process
+		execute_cmds(&cmd_list);
+	}
 	return;
 }
 
 int main(int argc, char **argv)
 {
 	initialize_readline(); // Bind the command completer
-	char * line, * s;;
+	char * line, * s;
 
 	// Loop reading and exec
 	for(;;)
 	{
 		line = rl_gets();
 		s = stripwhite(line);
-		execute_line(line);
+		//execute_line(line);
+		printf("%d\n",get_cmd_number(s));
 	}
+	return 0;
 }
 
