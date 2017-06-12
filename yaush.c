@@ -8,16 +8,22 @@
 #include "yaush.h"
 
 static char * line_read = (char *) NULL;
+static int mainpid;
 
 
 char * rl_gets()
 {
+	char pathbuf[256];
+	if (getcwd(pathbuf, sizeof(pathbuf)) == NULL)
+		perror("getcwd error\n");
+	strcat(pathbuf, "\nyaush> ");
+
 	if(line_read)
 	{
 		free(line_read);
 		line_read = (char *) NULL;
 	}
-	line_read = readline(PROMPT);
+	line_read = readline(pathbuf);
 
 	if(line_read && *line_read)
 		add_history(line_read);
@@ -83,36 +89,34 @@ void execute_line(char * line)
 	CommandList * cmd_list;
 	cmd_list = parse_line(line);
 	execute_cmds(cmd_list);
-	/*
-	int pid = fork();
-	if (pid==0)
-	{	//child process
-		if (cmd_list->background==1)
-			//printf("\nDone: %s\n",line);
-			;
-		exit(0);
-	}
-	else
-	{
-		if (cmd_list->background==0)
-		{
-			pid = wait(NULL);
-		}
-	}
-	*/
 	return;
 }
 
+void sigcatcher(int signo, siginfo_t * info, void * ctx)
+{
+	if (mainpid != getpid() && find_job(getpid()) == NULL)
+	{
+		exit(0);
+	}
+}
+	
 int main(int argc, char **argv)
 {
 	initialize_readline(); // Bind the command completer
 	job_init();
+	mainpid = getpid();
 	char * line, * s;
 
+	struct sigaction act;
+	sigfillset(&(act.sa_mask));
+	act.sa_flags = SA_SIGINFO;
+	act.sa_sigaction = sigcatcher;
+	sigaction(SIGINT, &act, NULL);
 	// Loop reading and exec
 	for(;;)
 	{
 		line = rl_gets();
+		job_update();
 		s = stripwhite(line);
 		execute_line(s);
 		//printf("%d\n",get_cmd_number(s));

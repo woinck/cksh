@@ -17,7 +17,7 @@ char ** argstr(Command * cmd)
 	return str;
 }
 
-int execute_cmd(Command * cmd, int prevret)
+int execute_cmd(Command * cmd, int prevret, CommandList * clist)
 {
 	char ** arglist = argstr(cmd);
 	
@@ -35,6 +35,11 @@ int execute_cmd(Command * cmd, int prevret)
 	if (strcmp(cmd->cmd, "cd")==0)
 	{
 		chdir(cmd->arg->next->value);
+		return 0;
+	}
+	if (strcmp(cmd->cmd, "jobs")==0)
+	{
+		cmd_jobs();
 		return 0;
 	}
 	// preparation
@@ -140,26 +145,31 @@ int execute_cmds(CommandList * clist)
 {
 	//print_cmdlist(clist);
 	Command * curcmd = clist->command->next;
-	int ret = 0;
+	int ret = 0, pid = 0;
+
 	if (clist->background == 1)
 	{
-		if (fork() == 0)
+		pid = fork();
+		if (pid == 0)
 		{
 			while(curcmd!= NULL)
 			{
-				ret = execute_cmd(curcmd, ret);
+				ret = execute_cmd(curcmd, ret, clist);
 				curcmd = curcmd->next;
 			}
 			exit(ret);
 		}
 		else
+		{
+			add_job(pid, clist->line);
 			return 0;
+		}
 	}
 	else
 	{
 		while(curcmd!= NULL)
 		{
-			ret = execute_cmd(curcmd, ret);
+			ret = execute_cmd(curcmd, ret, 0);
 			curcmd = curcmd->next;
 		}
 		return ret;

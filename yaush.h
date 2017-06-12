@@ -12,7 +12,6 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 
-#define PROMPT "yaush> "
 
 extern char * commands[];
 
@@ -37,6 +36,7 @@ typedef struct Command{
 typedef struct CommandList{
 	Command * command;
 	int background; // For &
+	char * line;
 }CommandList;
 
 typedef enum JobStatus{
@@ -49,7 +49,7 @@ typedef struct Jobnode{
 	int pid;
 	char * cmd;
 	JobStatus status;
-	struct Joblist * next;
+	struct Jobnode * next;
 }Jobnode;
 
 
@@ -58,5 +58,9 @@ CommandList * parse_line(char *);
 int execute_cmds(CommandList *);
 void print_cmdlist(CommandList *);
 void job_init();
+void add_job(int, char *);
+int cmd_jobs();
+void job_update();
+Jobnode * find_job(int);
 
 #endif

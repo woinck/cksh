@@ -15,7 +15,9 @@ CommandList * new_command_list()
 {
 	CommandList * clist = malloc(sizeof(CommandList));
 	clist->command = malloc(sizeof(Command));
+	clist->command->next = NULL;
 	clist->background = 0;
+	clist->line = NULL;
 	return clist;
 }
 
@@ -105,6 +107,7 @@ CommandList * parse_line(char * line)
 	//printf("parsing line: %s\n",line);
 	//int length = strlen(s);
 	CommandList * clist = new_command_list();
+	clist->line = strdup(line);
 
 	//clist.command = new_command();
 	Command * curcmd = clist->command;
