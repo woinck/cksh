@@ -3,8 +3,8 @@
 #include <string.h>
 #include <unistd.h>
 #include <readline/readline.h>
-#include <errno.h>
 #include <readline/history.h>
+#include <sys/wait.h>
 #include "yaush.h"
 
 static char * line_read = (char *) NULL;
@@ -89,13 +89,25 @@ char * stripwhite(char *str)
 
 void execute_line(char * line)
 {
-	printf("%s\n", line);
-	CommandList cmd_list;
+	//printf("%s\n", line);
+	CommandList * cmd_list;
 	cmd_list = parse_line(line);
-
-	if (fork()==0)
+	
+	int pid = fork();
+	if (pid==0)
 	{	//child process
-		execute_cmds(&cmd_list);
+		execute_cmds(cmd_list);
+		if (cmd_list->background==1)
+			//printf("\nDone: %s\n",line);
+			;
+		exit(0);
+	}
+	else
+	{
+		if (cmd_list->background==0)
+		{
+			pid = wait(NULL);
+		}
 	}
 	return;
 }
@@ -110,8 +122,8 @@ int main(int argc, char **argv)
 	{
 		line = rl_gets();
 		s = stripwhite(line);
-		//execute_line(line);
-		printf("%d\n",get_cmd_number(s));
+		execute_line(s);
+		//printf("%d\n",get_cmd_number(s));
 	}
 	return 0;
 }
