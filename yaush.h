@@ -26,11 +26,11 @@ typedef struct Command{
 	Arg * arg;
 	int argnum;
 	int depend; // For && and ||
-	char * fout; // For <, |
-	int append;
-	char * fin; // For >, >>, |
+	char * fout; // For >, >>, |
+	int append; // For >>
+	char * fin; // For <, |
 	struct Command * next;
-	int pp; // rw
+	int pp; // rw pipe
 }Command;
 
 typedef struct CommandList{

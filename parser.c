@@ -9,7 +9,7 @@
 #define STATE_PIPE 6
 #define STATE_ARG 7
 
-char * commands[]={"pwd","cd", "delete", "help", "ls", "rename", "stat"};
+char * commands[]={"pwd","cd", "jobs", "diff", "echo", "sleep", "ls", "rename", "stat"};
 
 CommandList * new_command_list()
 {
@@ -54,6 +54,8 @@ char * nextword(char * s)
 	if(s!=NULL) ptr = s;
 	char * start = ptr;
 	char * result;
+	result = malloc(sizeof(char) * (ptr - start + 1));
+	int i = 0;
 	if (*ptr=='\0') 
 	{
 		return NULL;
@@ -63,24 +65,37 @@ char * nextword(char * s)
 	{
 		if (*ptr=='\0')
 		{
-			result = malloc(sizeof(char) * (ptr - start + 1));
-			strncpy(result, start, ptr-start+1);
+			//result = malloc(sizeof(char) * (ptr - start + 1));
+			//strncpy(result, start, ptr-start+1);
+			result[i] = '\0';
 			return result;
 		}
 
 		if (escape == 1)
 		{
+			result[i] = *ptr;
+			i++;
 			escape = 0;
 			continue;
 		}
 		else if (escape == 2)
 		{
 			if (*ptr == '\'') escape = 0;
+			else
+			{
+				result[i] = *ptr;
+				i++;
+			}
 			continue;
 		}
 		else if (escape == 3)
 		{
 			if (*ptr == '\"') escape = 0;
+			else
+			{
+				result[i] = *ptr;
+				i++;
+			}
 			continue;
 		}
 		
@@ -92,11 +107,17 @@ char * nextword(char * s)
 			escape = 3;
 		else if (*ptr == ' ')
 		{
-			result = malloc(sizeof(char) * (ptr - start + 1));
-			strncpy(result, start, ptr-start);
-			result[ptr-start] = '\0';
+			//result = malloc(sizeof(char) * (ptr - start + 1));
+			result[i] = '\0';
+			//strncpy(result, start, ptr-start);
+			//result[ptr-start] = '\0';
 			ptr++;
 			return result;
+		}
+		else
+		{
+			result[i] = *ptr;
+			i++;
 		}
 	}	
 }
