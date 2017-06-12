@@ -10,16 +10,6 @@
 static char * line_read = (char *) NULL;
 
 
-int com_pwd PARAMS((char *));
-//COMMAND commands[] = {
-//	{ "cd", com_cd, "Change to directory DIR"},
-//	{ "delete", com_delete, "Delete FILE" },
-//	{ "help", com_help, "Synonym for 'help'"},
-//	{ "ls", com_list, "List files"},
-	//{ "pwd", com_pwd, "Print the current workdir"}
-//};
-
-
 char * rl_gets()
 {
 	if(line_read)
@@ -116,6 +106,7 @@ void execute_line(char * line)
 int main(int argc, char **argv)
 {
 	initialize_readline(); // Bind the command completer
+	job_init();
 	char * line, * s;
 
 	// Loop reading and exec

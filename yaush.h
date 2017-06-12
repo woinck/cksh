@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <signal.h>
 #include <sys/wait.h>
 #include <readline/readline.h>
 #include <readline/history.h>
@@ -35,14 +36,27 @@ typedef struct Command{
 
 typedef struct CommandList{
 	Command * command;
-	int number;
 	int background; // For &
 }CommandList;
+
+typedef enum JobStatus{
+	running,
+	stopped
+}JobStatus;
+
+typedef struct Jobnode{
+	int background;
+	int pid;
+	char * cmd;
+	JobStatus status;
+	struct Joblist * next;
+}Jobnode;
 
 
 int get_cmd_number(char *);
 CommandList * parse_line(char *);
 int execute_cmds(CommandList *);
 void print_cmdlist(CommandList *);
+void job_init();
 
 #endif

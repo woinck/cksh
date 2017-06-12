@@ -15,7 +15,6 @@ CommandList * new_command_list()
 {
 	CommandList * clist = malloc(sizeof(CommandList));
 	clist->command = malloc(sizeof(Command));
-	clist->number = 0;
 	clist->background = 0;
 	return clist;
 }

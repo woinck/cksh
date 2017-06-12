@@ -32,6 +32,11 @@ int execute_cmd(Command * cmd, int prevret)
 	{
 		exit(0);
 	}
+	if (strcmp(cmd->cmd, "cd")==0)
+	{
+		chdir(cmd->arg->next->value);
+		return 0;
+	}
 	// preparation
 	// pipe
 	if (cmd->pp | 1)
@@ -47,6 +52,8 @@ int execute_cmd(Command * cmd, int prevret)
 	pid = fork();
 	if (pid == 0)
 	{
+		//special commands
+		
 		if (cmd->fout != NULL)
 		{
 			int fdout;
@@ -112,6 +119,7 @@ int execute_cmd(Command * cmd, int prevret)
 			write(pfdin[1], pipebuf, strlen(pipebuf));
 			close(pfdin[1]);
 		}
+
 		pid = wait(&status);
 
 		// pipe output
@@ -133,10 +141,27 @@ int execute_cmds(CommandList * clist)
 	//print_cmdlist(clist);
 	Command * curcmd = clist->command->next;
 	int ret = 0;
-	while(curcmd!= NULL)
+	if (clist->background == 1)
 	{
-		ret = execute_cmd(curcmd, ret);
-		curcmd = curcmd->next;
+		if (fork() == 0)
+		{
+			while(curcmd!= NULL)
+			{
+				ret = execute_cmd(curcmd, ret);
+				curcmd = curcmd->next;
+			}
+			exit(ret);
+		}
+		else
+			return 0;
 	}
-	return ret;
+	else
+	{
+		while(curcmd!= NULL)
+		{
+			ret = execute_cmd(curcmd, ret);
+			curcmd = curcmd->next;
+		}
+		return ret;
+	}
 }
