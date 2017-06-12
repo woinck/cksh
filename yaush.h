@@ -6,6 +6,8 @@
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
+#include <fcntl.h>
+#include <sys/wait.h>
 #include <readline/readline.h>
 #include <readline/history.h>
 
@@ -24,10 +26,11 @@ typedef struct Command{
 	Arg * arg;
 	int argnum;
 	int depend; // For && and ||
-	int fout; // For <, |
-	int fin; // For >, >>, |
-	int pp; // rw
+	char * fout; // For <, |
+	int append;
+	char * fin; // For >, >>, |
 	struct Command * next;
+	int pp; // rw
 }Command;
 
 typedef struct CommandList{

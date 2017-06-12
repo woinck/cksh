@@ -92,11 +92,11 @@ void execute_line(char * line)
 	//printf("%s\n", line);
 	CommandList * cmd_list;
 	cmd_list = parse_line(line);
-	
+	execute_cmds(cmd_list);
+	/*
 	int pid = fork();
 	if (pid==0)
 	{	//child process
-		execute_cmds(cmd_list);
 		if (cmd_list->background==1)
 			//printf("\nDone: %s\n",line);
 			;
@@ -109,6 +109,7 @@ void execute_line(char * line)
 			pid = wait(NULL);
 		}
 	}
+	*/
 	return;
 }
 

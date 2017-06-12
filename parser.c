@@ -26,9 +26,11 @@ Command * new_command()
 	cmd->arg = NULL;
 	cmd->argnum = 0;
 	cmd->depend = 0; // For && and ||
-	cmd->fout = STDOUT_FILENO; // For <, |
-	cmd->fin = STDIN_FILENO; // For >, >>, |
+	cmd->fout = NULL; // For <, |
+	cmd->append = 0;
+	cmd->fin = NULL; // For >, >>, |
 	cmd->next = NULL;
+	cmd->pp = 0;
 	return cmd;
 }
 
@@ -131,18 +133,17 @@ CommandList * parse_line(char * line)
 		else if (!strcmp(word, ">"))
 		{
 			state = STATE_OUT;
+			curcmd->append = 0;
 		}
 		else if (!strcmp(word, ">>"))
 		{
 			state = STATE_APPEND;
+			curcmd->append = 1;
 		}
 		else if (!strcmp(word, "|"))
 		{
 			state = STATE_PIPE;
-			int fd[2];
-			pipe(fd);
 			curcmd->pp = curcmd->pp | 1;
-			curcmd->fout = fd[1];
 		}
 		else if (!strcmp(word, "&"))
 		{
@@ -165,6 +166,13 @@ CommandList * parse_line(char * line)
 						state = STATE_ARG;
 						break;
 					}
+				case STATE_OR:
+					{
+						next_cmd(&curcmd, &curarg, word);
+						curcmd->depend = 2;
+						state = STATE_ARG;
+						break;
+					}
 				case STATE_ARG:
 					{
 						curcmd->argnum++;
@@ -174,6 +182,32 @@ CommandList * parse_line(char * line)
 						curarg->next = NULL;
 						break;
 					}
+				case STATE_IN:
+					{
+						curcmd->fin = word;
+						state = STATE_ARG;
+						break;
+					}
+				case STATE_OUT:
+					{
+						curcmd->fout = word;
+						state = STATE_ARG;
+						break;
+					}
+				case STATE_APPEND:
+					{
+						curcmd->fout = word;
+						state = STATE_ARG;
+						break;
+					}
+				case STATE_PIPE:
+					{
+						next_cmd(&curcmd, &curarg, word);
+						curcmd->pp = curcmd->pp | 2;
+						state = STATE_ARG;
+						break;
+					}
+
 				default:
 					break;
 			}
